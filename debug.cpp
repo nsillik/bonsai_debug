@@ -318,7 +318,10 @@ debug_timed_function::~debug_timed_function()
       }
     }
 
-    Assert(this->Scope->EndingCycle > this->Scope->StartingCycle);
+    // NOTE(nsillik): >= and not >, because GetCycleCount is not a cycle counter on every
+    // platform -- under Rosetta it is the 24MHz system timer, so a region shorter than one
+    // tick reads the same value twice.  A counter that rewinds still fails.
+    Assert(this->Scope->EndingCycle >= this->Scope->StartingCycle);
     Assert(this->Scope->Parent != this->Scope);
     Assert(this->Scope->Sibling != this->Scope);
     Assert(this->Scope->Child != this->Scope);
