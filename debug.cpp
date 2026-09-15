@@ -318,7 +318,12 @@ debug_timed_function::~debug_timed_function()
       }
     }
 
-    Assert(this->Scope->EndingCycle > this->Scope->StartingCycle);
+    // NOTE(nsillik)(macos): >= and not >, because GetCycleCount is not a cycle counter on every
+    // platform.  Under Rosetta 2 __rdtsc is the 24 MHz system timer, so a region shorter than one
+    // tick reads the same value twice and this traps on healthy code -- as soon as the render
+    // thread does any work.  Native arm64 hits the same thing: cntvct_el0 ticks at that rate too.
+    // A counter that *rewinds*, which is what this assert was protecting against, still fails.
+    Assert(this->Scope->EndingCycle >= this->Scope->StartingCycle);
     Assert(this->Scope->Parent != this->Scope);
     Assert(this->Scope->Sibling != this->Scope);
     Assert(this->Scope->Child != this->Scope);
